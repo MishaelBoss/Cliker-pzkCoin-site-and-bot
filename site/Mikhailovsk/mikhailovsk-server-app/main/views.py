@@ -182,3 +182,21 @@ def get_basket_view(request):
         actual_coins = response.json()['coins']
         profile.coins = actual_coins
         profile.save()
+
+
+@csrf_exempt
+def sync_coins_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        tg_id = data.get('telegram_id')
+        coins = data.get('coins')
+
+        profile = Profile.objects.filter(telegram_id=tg_id).first()
+        
+        if profile:
+            if coins > profile.coins:
+                profile.coins = coins
+                profile.save()
+            return JsonResponse({'status': 'updated'})
+            
+    return JsonResponse({'status': 'error'}, status=400)

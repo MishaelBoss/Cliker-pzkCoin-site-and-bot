@@ -1,4 +1,6 @@
 const tg = window.Telegram.WebApp;
+const user = tg.initDataUnsafe?.user;
+
 tg.ready();
 tg.expand();
 
@@ -14,6 +16,25 @@ async function getGithubToken() {
     }
     // На продакшене токен будет вставлен через GitHub Actions
     return '${PZK_TOKEN}'; // Плейсхолдер для замены
+}
+
+async function syncProgressWithDatabase(coins) {
+    if (!user || coins === undefined) return;
+
+    try {
+        await fetch('http://localhost:8000/api/sync-coins/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                telegram_id: user.id,
+                coins: coins
+            }),
+            mode: 'cors',
+            keepalive: true 
+        });
+    } catch (e) {
+        console.log("Sync background...");
+    }
 }
 
 class GameState {
@@ -72,6 +93,8 @@ class GameState {
             } catch (e) {
                 console.error('Load error', e);
             }
+
+            syncProgressWithDatabase(this.coins);
         } else {
             this.playerName = this.getTelegramName();
             this.save();

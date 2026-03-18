@@ -16,4 +16,5 @@ urlpatterns = [
     path('basket/add/', views.add_to_basket_view),
     path('basket/remove/', views.remove_basket_view),
     path('basket/delete/<int:item_id>/', views.delete_from_basket_view),
+    path('api/sync-coins/', views.sync_coins_view),
 ]
