@@ -93,8 +93,6 @@ class GameState {
             } catch (e) {
                 console.error('Load error', e);
             }
-
-            syncProgressWithDatabase(this.coins);
         } else {
             this.playerName = this.getTelegramName();
             this.save();
@@ -236,6 +234,8 @@ class GameState {
             playerName: this.playerName
         };
         localStorage.setItem('pzkNeonState', JSON.stringify(data));
+
+        syncProgressWithDatabase(this.coins);
     }
 
     useEnergy(amount) {

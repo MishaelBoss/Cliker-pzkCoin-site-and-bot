@@ -4,7 +4,7 @@ import { message } from 'telegraf/filters';
 // --- Конфигурация (ЗАМЕНИ НА СВОИ ДАННЫЕ) ---
 const BOT_TOKEN = '7685117804:AAH7TwiEjqpbHprCDpO-0-DI8yL52fDFndk'; // Вставь свой токен
 // !!! ВАЖНО: После деплоя фронтенда вставь сюда ссылку на GitHub Pages !!!
-const WEB_APP_URL = 'https://mishaelboss.github.io/Cliker-pzkCoin-site-and-bot/'; 
+const WEB_APP_URL = 'https://mishaelboss.github.io/test_bot/'; 
 // Например: 'https://ivan-ivanov.github.io/pzk-clicker-tma'
 
 // --- Инициализация бота ---

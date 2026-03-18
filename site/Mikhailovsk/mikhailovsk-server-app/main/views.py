@@ -175,13 +175,32 @@ def delete_from_basket_view(request, item_id):
 
 
 def get_basket_view(request):
+    if not request.user.is_authenticated:
+        return JsonResponse([], safe=False)
+
     profile = request.user.profile
+    user_coins = profile.coins 
     
-    response = request.get(f"https://PriZroK5.github.io/pzk-clicker-tma/{profile.telegram_id}")
-    if response.status_code == 200:
-        actual_coins = response.json()['coins']
-        profile.coins = actual_coins
-        profile.save()
+    items = Basket.objects.filter(user=request.user)
+    data = []
+
+    for b in items:
+        product = b.product
+        discount = product.discount if user_coins >= 1000 else 0
+        
+        data.append({
+            "id": b.id,
+            "count": b.count,
+            "product": {
+                "id": product.id,
+                "title": product.title,
+                "price": product.price,
+                "discount": discount, 
+                "isPercent": product.isPercent,
+                "image": product.image.url if product.image else ""
+            }
+        })
+    return JsonResponse(data, safe=False)
 
 
 @csrf_exempt
