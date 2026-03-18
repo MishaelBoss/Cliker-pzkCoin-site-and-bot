@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-import json
+import json, requests
 from django.views.decorators.csrf import csrf_exempt
 from .models import *
 from django.shortcuts import get_object_or_404
@@ -121,12 +121,14 @@ def list_product_view(request):
     data = []
 
     for p in products:
-        current_discount = user_discounts.get(p.id, p.discount)
+        personal_discount = user_discounts.get(p.id, 0)
+        total_discount = min(p.discount + personal_discount, 90)
+
         data.append({
             "id": p.id,
             "title": p.title,
             "realPrice": p.price,
-            "discount": current_discount,
+            "discount": total_discount,
             "isPercent": p.isPercent,
             "image": p.image.url if p.image else "" 
         })
@@ -187,6 +189,8 @@ def get_basket_view(request):
         personal_discount = user_discounts.get(product.id)
         current_discount = personal_discount if personal_discount is not None else product.discount
 
+        total_discount = min(b.product.discount + current_discount, 90)
+
         data.append({
             "id": b.id,
             "count": b.count,
@@ -194,7 +198,7 @@ def get_basket_view(request):
                 "id": product.id,
                 "title": product.title,
                 "price": product.price,
-                "discount": current_discount,
+                "discount": total_discount,
                 "isPercent": product.isPercent,
                 "image": product.image.url if product.image else ""
             }
@@ -255,19 +259,33 @@ def sync_coins_view(request):
 def buy_discount_view(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        product_id = data.get('product_id')
+        p_id = data.get('product_id')
         profile = request.user.profile
 
-        if profile.coins >= 1000:
-            profile.coins -= 1000
+        print(f"---> Попытка покупки. Юзер ID: {profile.telegram_id}, Товар: {p_id}")
+
+        if profile.coins >= 250:
+            profile.coins -= 250
             profile.save()
+            print("--- [1] Монеты в БД Django списаны")
 
-            UserDiscount.objects.update_or_create(
-                user=request.user, 
-                product_id=product_id,
-                defaults={'discount_value': 10, 'is_used': False}
-            )
+            # Шлем запрос боту
+            try:
+                print("--- [2] Отправляю запрос боту на порт 3001...")
+                bot_url = "http://localhost:3001/api/deduct-coins"
+                payload = {
+                    "telegram_id": profile.telegram_id,
+                    "amount": 250,
+                    "secret_key": "7685117804:AAH7TwiEjqpbHprCDpO-0-DI8yL52fDFndk" # Твой токен
+                }
+                
+                response = requests.post(bot_url, json=payload, timeout=2)
+                print(f"--- [3] Ответ от бота: {response.status_code}, {response.text}")
+                
+            except Exception as e:
+                print(f"--- [!] Ошибка связи с ботом: {e}")
 
-            return JsonResponse({'status': 'success', 'new_balance': profile.coins})
-        
-    return JsonResponse({'error': 'Недостаточно монет'})
+            return JsonResponse({'status': 'success'})
+        else:
+            print("--- [!] Недостаточно монет")
+            return JsonResponse({'error': 'No coins'}, status=400)
