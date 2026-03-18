@@ -5,7 +5,7 @@ tg.ready();
 tg.expand();
 
 // GitHub Configuration - имя секрета изменено
-const GITHUB_REPO = 'PriZroK5/pzk-clicker-tma';
+const GITHUB_REPO = 'MishaelBoss/test_bot';
 const GITHUB_FILE_PATH = 'stats.json';
 
 // Функция для получения токена (будет подменяться при сборке)
@@ -22,7 +22,9 @@ async function syncProgressWithDatabase(coins) {
     if (!user || coins === undefined) return;
 
     try {
-        await fetch('http://localhost:8000/api/sync-coins/', {
+        const url = 'https://4c5b-50-7-176-138.ngrok-free.app';
+
+        await fetch(`${url}/api/sync-coins/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

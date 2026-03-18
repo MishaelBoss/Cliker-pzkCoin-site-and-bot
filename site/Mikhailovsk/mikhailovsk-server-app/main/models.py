@@ -20,3 +20,12 @@ class Basket(models.Model):
     count = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class UserDiscount(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='my_discounts')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    discount_value = models.IntegerField(default=10)
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'product')

@@ -219,3 +219,25 @@ def sync_coins_view(request):
             return JsonResponse({'status': 'updated'})
             
     return JsonResponse({'status': 'error'}, status=400)
+
+
+@csrf_exempt
+def buy_discount_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        product_id = data.get('product_id')
+        profile = request.user.profile
+
+        if profile.count >= 1000:
+            profile.coins -= 1000
+            profile.save()
+
+            UserDiscount.objects.update_or_create(
+                user=request.user, 
+                product_id=product_id,
+                defaults={'discount_value': 10, 'is_used': False}
+            )
+
+            return JsonResponse({'status': 'success', 'new_balance': profile.coins})
+        
+    return JsonResponse({'error': 'Недостаточно монет'})
