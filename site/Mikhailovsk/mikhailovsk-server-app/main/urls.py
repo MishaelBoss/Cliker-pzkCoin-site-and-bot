@@ -7,6 +7,8 @@ urlpatterns = [
     path('login/', views.login_view, name='login_view'),
     path('logout/', views.logout_view, name='logout_view'),
     path('api/profile/', views.profile_view, name='profile_view'),
+    path('api/update-profile/', views.update_profile_view, name='update_profile_view'),
+    path('api/get-telegram-id/', views.get_telegram_id_view, name='get_telegram_id_view'),
     path('coins/', views.get_coins_view, name='get_coins_view'),
     path('is_authenticated/', views.is_login_view, name='is_login_view'),
     path('add_product/', views.add_product_view, name='add_product_view'),
@@ -17,4 +19,5 @@ urlpatterns = [
     path('basket/remove/', views.remove_basket_view),
     path('basket/delete/<int:item_id>/', views.delete_from_basket_view),
     path('api/sync-coins/', views.sync_coins_view),
+    path('api/buy-discount/', views.buy_discount_view),
 ]
