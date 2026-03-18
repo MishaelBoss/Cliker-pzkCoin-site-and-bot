@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pzk Ежедневные задания</title>
+    <meta name="theme-color" content="#0a0f1e">
+    <meta name="color-scheme" content="dark">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        .quests-container {
+            max-width: 450px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .quests-header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(0, 243, 255, 0.1);
+            padding: 5px;
+            border-radius: 30px;
+            border: 1px solid var(--neon-blue);
+        }
+        
+        .quest-tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        .quest-tab.active {
+            background: var(--neon-blue);
+            color: var(--neon-dark);
+            box-shadow: var(--neon-glow);
+        }
+        
+        .quests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .quest-item {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid var(--neon-blue);
+            border-radius: 15px;
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .quest-item.completed {
+            opacity: 0.7;
+            border-color: #00ff88;
+            box-shadow: 0 0 15px #00ff88;
+        }
+        
+        .quest-item.completed::before {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #00ff88;
+            font-size: 24px;
+            font-weight: 700;
+            text-shadow: 0 0 10px #00ff88;
+        }
+        
+        .quest-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--neon-blue);
+            margin-bottom: 8px;
+            text-shadow: var(--neon-glow);
+            padding-right: 30px;
+        }
+        
+        .quest-description {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 12px;
+            opacity: 0.9;
+        }
+        
+        .quest-progress {
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-blue), #0066ff);
+            box-shadow: var(--neon-glow);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .progress-text {
+            font-size: 12px;
+            color: var(--neon-blue);
+            text-align: right;
+        }
+        
+        .quest-reward {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(0, 243, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .reward-icon {
+            font-size: 20px;
+        }
+        
+        .reward-amount {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffaa00;
+            text-shadow: 0 0 10px #ffaa00;
+        }
+        
+        .quest-button {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+            border-radius: 25px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .quest-button:hover:not(:disabled) {
+            background: var(--neon-blue);
+            color: var(--neon-dark);
+            box-shadow: var(--neon-glow);
+        }
+        
+        .quest-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: rgba(0, 243, 255, 0.3);
+        }
+        
+        .quest-button.completed {
+            background: #00ff88;
+            color: #0a0f1e;
+            border-color: #00ff88;
+            box-shadow: 0 0 15px #00ff88;
+        }
+        
+        .reset-timer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid var(--neon-blue);
+            border-radius: 15px;
+        }
+        
+        .timer-label {
+            font-size: 12px;
+            color: var(--neon-blue);
+            margin-bottom: 5px;
+        }
+        
+        .timer-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: var(--neon-glow);
+        }
+        
+        .back-button {
+            margin-top: 20px;
+            padding: 12px;
+            background: transparent;
+            color: #fff;
+            border: 1px solid var(--neon-blue);
+            border-radius: 25px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            width: 100%;
+        }
+        
+        .back-button:hover {
+            background: var(--neon-blue);
+            color: var(--neon-dark);
+            box-shadow: var(--neon-glow);
+        }
+    </style>
+</head>
+<body>
+    <div class="neon-background"></div>
+    
+    <div class="container quests-container">
+        <h1 class="neon-title">PZK<span>ЗАДАНИЯ</span></h1>
+        
+        <div class="neon-balance" style="margin-bottom: 20px;">
+            <span id="coinBalance">0</span>
+            <span class="currency">PZK</span>
+        </div>
+        
+        <div class="quests-header">
+            <button class="quest-tab active" id="activeTab">АКТИВНЫЕ</button>
+            <button class="quest-tab" id="completedTab">ВЫПОЛНЕННЫЕ</button>
+        </div>
+        
+        <div id="activeQuests" class="quests-list"></div>
+        <div id="completedQuests" class="quests-list" style="display: none;"></div>
+        
+        <div class="reset-timer">
+            <div class="timer-label">СБРОС ЗАДАНИЙ ЧЕРЕЗ</div>
+            <div class="timer-value" id="resetTimer">24:00:00</div>
+        </div>
+        
+        <button class="back-button" onclick="window.location.href='index.html'">🏠 НА ГЛАВНУЮ</button>
+    </div>
+    
+    <script src="ev.js"></script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pzk Clicker</title>
+    <meta name="theme-color" content="#0a0f1e">
+    <meta name="color-scheme" content="dark">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="neon-title">PZK<span>CLICKER</span></h1>
+        
+        <div class="neon-balance">
+            <span id="coinBalance">0</span>
+            <span class="currency">PZK</span>
+        </div>
+
+        <div class="energy-bar-container">
+            <div class="energy-bar-label">
+                <span>⚡ ЭНЕРГИЯ</span>
+                <span id="energyDisplay">100/100</span>
+            </div>
+            <div class="energy-bar">
+                <div class="energy-fill" id="energyFill" style="width: 100%"></div>
+            </div>
+            <div class="energy-charge-buttons">
+                <button class="neon-btn charge-btn" id="chargeHalf">🔋 ЗАРЯДИТЬ 50%</button>
+                <button class="neon-btn charge-btn" id="chargeFull">⚡ ЗАРЯДИТЬ 100%</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="clicker">🪙 КЛИКЕР</button>
+            <button class="tab-btn" data-tab="shop">🏪 МАГАЗИН</button>
+            <button class="tab-btn" data-tab="roulette-basic">🎲 PZK РУЛЕТКА</button>
+            <button class="tab-btn" data-tab="roulette-vip">👑 VIP РУЛЕТКА</button>
+            <button class="tab-btn" data-tab="minigame">🎮 МИНИ-ИГРА</button>
+            <button class="tab-btn" data-tab="rating">🏆 РЕЙТИНГ</button>
+            <button class="tab-btn" data-tab="quests">📋 ЗАДАНИЯ</button>
+        </div>
+
+        <div id="clicker-tab" class="tab-content active">
+            <div class="ghost-wrapper" id="ghostWrapper">
+                <div class="neon-ghost" id="clickableGhost">
+                    <div class="ghost-inner"></div>
+                    <div class="ghost-glow"></div>
+                    <div class="ghost-trail"></div>
+                </div>
+                <div id="floatingNumbers" class="floating-numbers-container"></div>
+            </div>
+
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <span>⚡ AFK УРОВЕНЬ</span>
+                    <span id="afkLevel">1</span>
+                </div>
+                <div class="stat-item">
+                    <span>📈 AFK ДОХОД</span>
+                    <span id="afkIncome">1/сек</span>
+                </div>
+                <div class="stat-item">
+                    <span>💪 МНОЖИТЕЛЬ</span>
+                    <span id="multiplierDisplay">1x</span>
+                </div>
+                <div class="stat-item">
+                    <span>👆 ВСЕГО КЛИКОВ</span>
+                    <span id="totalClicks">0</span>
+                </div>
+            </div>
+
+            <div class="boosts-panel">
+                <h2 class="neon-subtitle">⚡ PZK УСИЛИТЕЛИ ⚡</h2>
+                <div class="boosts-grid">
+                    <div class="neon-boost-item" id="boostAfk">
+                        <div class="boost-glow"></div>
+                        <h3>💤 AFK</h3>
+                        <p>+<span id="afkGain">1</span>/сек</p>
+                        <div class="boost-price" id="afkPrice">10</div>
+                        <button class="neon-btn" data-boost="afk">КУПИТЬ</button>
+                    </div>
+                    <div class="neon-boost-item" id="boostDouble">
+                        <div class="boost-glow"></div>
+                        <h3>2️⃣ ДВОЙНОЙ</h3>
+                        <p>×2 клик</p>
+                        <div class="boost-price" id="doublePrice">50</div>
+                        <button class="neon-btn" data-boost="double">КУПИТЬ</button>
+                    </div>
+                    <div class="neon-boost-item" id="boostRandom">
+                        <div class="boost-glow"></div>
+                        <h3>🎲 РАНДОМ</h3>
+                        <p>бонус 50 клик</p>
+                        <div class="boost-price" id="randomPrice">100</div>
+                        <button class="neon-btn" data-boost="random">КУПИТЬ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="shop-tab" class="tab-content">
+            <h2 class="neon-subtitle">🏪 МАГАЗИН УСИЛИТЕЛЕЙ</h2>
+            <div class="shop-grid">
+                <div class="neon-shop-item">
+                    <h3>⚡ МОЩНЫЙ КЛИК</h3>
+                    <p>+2 монеты за клик</p>
+                    <div class="shop-price" id="powerPrice">200</div>
+                    <button class="neon-btn" data-boost="power">КУПИТЬ</button>
+                </div>
+                <div class="neon-shop-item">
+                    <h3>💎 УДАЧА</h3>
+                    <p>+5% к рулетке</p>
+                    <div class="shop-price" id="luckPrice">300</div>
+                    <button class="neon-btn" data-boost="luck">КУПИТЬ</button>
+                </div>
+                <div class="neon-shop-item">
+                    <h3>🚀 СУПЕР AFK</h3>
+                    <p>+3 монеты/сек</p>
+                    <div class="shop-price" id="superAfkPrice">500</div>
+                    <button class="neon-btn" data-boost="superAfk">КУПИТЬ</button>
+                </div>
+                <div class="neon-shop-item" id="energyUpgradeItem">
+                    <h3>🔋 УВЕЛИЧЕНИЕ ЭНЕРГИИ</h3>
+                    <p>Уровень <span id="energyLevel">1</span> (x<span id="energyMult">2</span>)</p>
+                    <div class="shop-price" id="energyUpgradePrice">300</div>
+                    <button class="neon-btn" data-boost="energyUpgrade">УЛУЧШИТЬ</button>
+                </div>
+                <div class="neon-shop-item" id="minigameAttemptItem">
+                    <h3>🎮 ДОП. ПОПЫТКА</h3>
+                    <p>+1 попытка в мини-игре</p>
+                    <div class="shop-price" id="minigameAttemptPrice">2000</div>
+                    <button class="neon-btn" data-boost="minigameAttempt">КУПИТЬ</button>
+                </div>
+                <div class="neon-shop-item">
+                    <h3>🎰 МАГНИТ</h3>
+                    <p>+10% к монетам</p>
+                    <div class="shop-price" id="magnetPrice">1500</div>
+                    <button class="neon-btn" data-boost="magnet">КУПИТЬ</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="roulette-basic-tab" class="tab-content">
+            <h2 class="neon-subtitle">🎲 PZK РУЛЕТКА</h2>
+            
+            <div class="roulette-container">
+                <div class="roulette-wheel" id="basicWheel">
+                    <div class="wheel-segment" style="--i:0">50</div>
+                    <div class="wheel-segment" style="--i:1">100</div>
+                    <div class="wheel-segment" style="--i:2">200</div>
+                    <div class="wheel-segment" style="--i:3">300</div>
+                    <div class="wheel-segment" style="--i:4">500</div>
+                    <div class="wheel-segment" style="--i:5">750</div>
+                    <div class="wheel-segment" style="--i:6">1000</div>
+                    <div class="wheel-segment" style="--i:7">0</div>
+                </div>
+                <div class="wheel-pointer"></div>
+            </div>
+
+            <div class="roulette-info">
+                <p class="roulette-stake">СТАВКА: 150 PZK</p>
+                <p class="roulette-range">ВЫИГРЫШ: 50 - 1000 PZK</p>
+                <button class="neon-btn roulette-btn" id="spinBasic">КРУТИТЬ</button>
+            </div>
+
+            <div id="basicResult" class="roulette-result"></div>
+        </div>
+
+        <div id="roulette-vip-tab" class="tab-content">
+            <h2 class="neon-subtitle">👑 VIP РУЛЕТКА</h2>
+            
+            <div class="roulette-container">
+                <div class="roulette-wheel" id="vipWheel">
+                    <div class="wheel-segment" style="--i:0">2000</div>
+                    <div class="wheel-segment" style="--i:1">2500</div>
+                    <div class="wheel-segment" style="--i:2">3000</div>
+                    <div class="wheel-segment" style="--i:3">3500</div>
+                    <div class="wheel-segment" style="--i:4">4000</div>
+                    <div class="wheel-segment" style="--i:5">4500</div>
+                    <div class="wheel-segment" style="--i:6">5000</div>
+                    <div class="wheel-segment" style="--i:7">1000</div>
+                </div>
+                <div class="wheel-pointer"></div>
+            </div>
+
+            <div class="roulette-info">
+                <p class="roulette-stake">СТАВКА: 1000 PZK</p>
+                <p class="roulette-range">ВЫИГРЫШ: 2000 - 5000 PZK</p>
+                <button class="neon-btn roulette-btn" id="spinVip">КРУТИТЬ VIP</button>
+            </div>
+
+            <div id="vipResult" class="roulette-result"></div>
+        </div>
+
+        <div id="minigame-tab" class="tab-content">
+            <h2 class="neon-subtitle">🎮 ЕЖЕДНЕВНАЯ МИНИ-ИГРА</h2>
+            
+            <div id="minigamePreview" class="minigame-preview">
+                <div class="minigame-icon">🎮</div>
+                <h3 class="minigame-title">НАЙДИ СВОЙ ПРИЗ!</h3>
+                <p class="minigame-description">
+                    Выбери один из 6 макетов.<br>
+                    Каждый скрывает случайный выигрыш от 300 до 4000 PZK!
+                </p>
+                <div class="minigame-status" id="minigameStatus"></div>
+                <button class="neon-btn minigame-start-btn" id="startMinigame">🎮 НАЧАТЬ ИГРУ</button>
+            </div>
+
+            <div id="minigameBoard" class="minigame-board" style="display: none;">
+                <div class="minigame-grid">
+                    <div class="minigame-card" data-id="1">
+                        <img src="1.jpg" alt="1" class="minigame-image">
+                    </div>
+                    <div class="minigame-card" data-id="2">
+                        <img src="2.jpg" alt="2" class="minigame-image">
+                    </div>
+                    <div class="minigame-card" data-id="3">
+                        <img src="3.jpg" alt="3" class="minigame-image">
+                    </div>
+                    <div class="minigame-card" data-id="4">
+                        <img src="4.jpg" alt="4" class="minigame-image">
+                    </div>
+                    <div class="minigame-card" data-id="5">
+                        <img src="5.jpg" alt="5" class="minigame-image">
+                    </div>
+                    <div class="minigame-card" data-id="6">
+                        <img src="6.jpg" alt="6" class="minigame-image">
+                    </div>
+                </div>
+            </div>
+
+            <div id="minigameOverlay" class="minigame-overlay" style="display: none;">
+                <div class="minigame-popup">
+                    <div class="popup-content">
+                        <span id="winAmount" class="win-amount">+0</span>
+                        <span class="win-currency">PZK</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="rating-tab" class="tab-content">
+            <h2 class="neon-subtitle">🏆 ТОП-10 ИГРОКОВ</h2>
+            
+            <div class="rating-container">
+                <div class="rating-header">
+                    <span class="rating-rank">#</span>
+                    <span class="rating-name">ИМЯ</span>
+                    <span class="rating-coins">МОНЕТЫ</span>
+                    <span class="rating-clicks">КЛИКИ</span>
+                </div>
+                <div id="ratingList" class="rating-list">
+                    <!-- Рейтинг будет заполняться через JavaScript -->
+                </div>
+            </div>
+
+            <div class="player-stats">
+                <h3 class="neon-subtitle" style="font-size: 16px; margin: 20px 0 10px;">📊 ТВОЯ СТАТИСТИКА</h3>
+                <div class="player-stat-item">
+                    <span>👤 ИГРОК:</span>
+                    <span id="playerName">Загрузка...</span>
+                </div>
+                <div class="player-stat-item">
+                    <span>💰 МОНЕТЫ:</span>
+                    <span id="playerCoins">0</span>
+                </div>
+                <div class="player-stat-item">
+                    <span>👆 КЛИКИ:</span>
+                    <span id="playerClicks">0</span>
+                </div>
+                <div class="player-stat-item">
+                    <span>🏆 МЕСТО В РЕЙТИНГЕ:</span>
+                    <span id="playerRank">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="quests-tab" class="tab-content">
+            <div style="text-align: center; padding: 20px;">
+                <h2 class="neon-subtitle" style="margin-bottom: 20px;">📋 ЕЖЕДНЕВНЫЕ ЗАДАНИЯ</h2>
+                
+                <div style="background: rgba(0, 243, 255, 0.1); border: 1px solid var(--neon-blue); border-radius: 20px; padding: 30px; margin-bottom: 20px; backdrop-filter: blur(5px);">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📋</div>
+                    <p style="color: #fff; margin-bottom: 15px; font-size: 16px;">
+                        Выполняй задания каждый день и получай награды!
+                    </p>
+                    <p style="color: var(--neon-blue); margin-bottom: 25px; font-size: 14px;">
+                        • Кликай по призраку<br>
+                        • Трать энергию<br>
+                        • Копи монеты<br>
+                        • Играй в рулетку<br>
+                        • Покупай бусты
+                    </p>
+                    <button class="neon-btn" onclick="window.location.href='ev.html'" 
+                            style="padding: 15px 30px; font-size: 16px; width: auto; display: inline-block;">
+                        📋 ОТКРЫТЬ ЗАДАНИЯ
+                    </button>
+                </div>
+
+                <div class="reset-timer" style="margin-top: 20px;">
+                    <div class="timer-label">ЗАДАНИЯ ОБНОВЛЯЮТСЯ</div>
+                    <div class="timer-value">КАЖДЫЙ ДЕНЬ В 00:00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="neon-background"></div>
+    <script src="script.js"></script>
+</body>
+</html>
