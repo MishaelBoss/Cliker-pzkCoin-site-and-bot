@@ -34,7 +34,7 @@ class GameState {
         this.loadRatingFromServer();
     }
 
-    load() {
+    async load() {
         const saved = localStorage.getItem('pzkNeonState');
         if (saved) {
             try {
@@ -69,6 +69,33 @@ class GameState {
         } else {
             this.playerName = this.getTelegramName();
             this.save();
+        }
+
+        await this.forceSyncBalance();
+    }
+
+    async forceSyncBalance() {
+        const tg = window.Telegram?.WebApp;
+        const userId = tg?.initDataUnsafe?.user?.id || 1923564346;
+
+        try {
+            // Запрашиваем актуальные данные из "банка" (Django-бот)
+            const response = await fetch(`${SERVER_URL}/player/id/${userId}/`);
+            
+            if (response.ok) {
+                const serverData = await response.json();
+                
+                // Если баланс на сервере отличается от того, что в памяти игры
+                if (serverData.coins !== undefined && serverData.coins !== this.coins) {
+                    console.log(`💰 Баланс принудительно обновлен: ${this.coins} -> ${serverData.coins}`);
+                    
+                    this.coins = serverData.coins; // Устанавливаем серверное значение
+                    this.save();                   // Сохраняем в localStorage
+                    this.updateUI();               // Обновляем цифры на экране
+                }
+            }
+        } catch (e) {
+            console.error("Ошибка принудительного обновления баланса:", e);
         }
     }
 
@@ -257,6 +284,18 @@ class GameState {
 }
 
 const gameState = new GameState();
+
+gameState.load().then(() => {
+    console.log("Игра полностью загружена и синхронизирована");
+    // Если нужно, здесь можно запустить игровой цикл или таймеры
+});
+
+// Слушатель для возврата в игру
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        gameState.forceSyncBalance(); 
+    }
+});
 
 const coinBalanceEl = document.getElementById('coinBalance');
 const clickableGhost = document.getElementById('clickableGhost');

@@ -4,7 +4,7 @@ import { message } from 'telegraf/filters';
 // --- Конфигурация (ЗАМЕНИ НА СВОИ ДАННЫЕ) ---
 const BOT_TOKEN = '8757211731:AAFT0wpO7MrTwieeaujsNt64dlDkJYFi7Ig'; // Вставь свой токен
 // !!! ВАЖНО: После деплоя фронтенда вставь сюда ссылку на GitHub Pages !!!
-const WEB_APP_URL = 'https://87eb-84-200-73-188.ngrok-free.app'; 
+const WEB_APP_URL = 'https://3485-194-107-126-216.ngrok-free.app'; 
 // Например: 'https://ivan-ivanov.github.io/pzk-clicker-tma'
 
 // --- Инициализация бота ---
