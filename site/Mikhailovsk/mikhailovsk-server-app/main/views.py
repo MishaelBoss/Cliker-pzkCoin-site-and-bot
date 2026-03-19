@@ -8,6 +8,10 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum 
 
 
+for user in User.objects.all():
+    Profile.objects.get_or_create(user=user)
+
+
 @csrf_exempt
 def register_view(request):
     if request.method == 'POST':
@@ -80,6 +84,7 @@ def profile_view(request):
 def get_telegram_id_view(request):
     if not request.user.is_authenticated:
         return JsonResponse({'message': 'Not authenticated'})
+        
     profile = get_object_or_404(Profile, user=request.user)
     return JsonResponse({"telegram_id": profile.telegram_id})
 
