@@ -257,35 +257,64 @@ def sync_coins_view(request):
 
 @csrf_exempt
 def buy_discount_view(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        p_id = data.get('product_id')
-        profile = request.user.profile
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Only POST allowed'}, status=405)
 
-        print(f"---> Попытка покупки. Юзер ID: {profile.telegram_id}, Товар: {p_id}")
+    # 1. Распаковываем данные от Next.js
+    data = json.loads(request.body)
+    p_id = data.get('product_id')
+    profile = request.user.profile
 
-        if profile.coins >= 250:
-            profile.coins -= 250
+    if not profile.telegram_id:
+        return JsonResponse({'error': 'Привяжите Telegram в профиле'}, status=400)
+
+    try:
+        remote_url = "http://localhost:8010/api/remote/deduct-coins/" 
+        
+        response = requests.post(remote_url, json={
+            "telegram_id": profile.telegram_id,
+            "amount": 250,
+            "api_key": "cr2032" # Твой секретный ключ
+        }, timeout=5)
+        
+        if response.status_code == 200:
+            # 3. Создаем скидку на сайте
+            UserDiscount.objects.get_or_create(
+                user=request.user, 
+                product_id=p_id,
+                defaults={'discount_value': 10}
+            )
+            
+            # 4. Обновляем баланс в локальной БД из ответа сервера бота
+            new_balance = response.json().get('new_balance')
+            profile.coins = new_balance
             profile.save()
-            print("--- [1] Монеты в БД Django списаны")
-
-            # Шлем запрос боту
-            try:
-                print("--- [2] Отправляю запрос боту на порт 3001...")
-                bot_url = "http://localhost:3001/api/deduct-coins"
-                payload = {
-                    "telegram_id": profile.telegram_id,
-                    "amount": 250,
-                    "secret_key": "7685117804:AAH7TwiEjqpbHprCDpO-0-DI8yL52fDFndk" # Твой токен
-                }
-                
-                response = requests.post(bot_url, json=payload, timeout=2)
-                print(f"--- [3] Ответ от бота: {response.status_code}, {response.text}")
-                
-            except Exception as e:
-                print(f"--- [!] Ошибка связи с ботом: {e}")
-
-            return JsonResponse({'status': 'success'})
+            
+            return JsonResponse({'status': 'success', 'new_balance': new_balance})
         else:
-            print("--- [!] Недостаточно монет")
-            return JsonResponse({'error': 'No coins'}, status=400)
+            return JsonResponse({'error': 'Ошибка сервера игры или мало монет'}, status=response.status_code)
+            
+    except Exception as e:
+        return JsonResponse({'error': f'Нет связи с сервером бота: {str(e)}'}, status=500)
+    
+
+def get_actual_coins(request):
+    profile = request.user.profile
+    
+    if not profile.telegram_id:
+        return JsonResponse({'coins': profile.coins, 'error': 'ID не привязан'})
+
+    try:
+        remote_url = f"http://127.0.0.1:8010/api/player/id/{profile.telegram_id}/"
+        res = requests.get(remote_url, timeout=2)
+        
+        if res.ok:
+            data = res.json()
+            profile.coins = data.get('coins', 0)
+            profile.save()
+            return JsonResponse({'coins': profile.coins})
+            
+    except Exception as e:
+        print(f"Ошибка связи с ботом: {e}")
+        
+    return JsonResponse({'coins': profile.coins})
